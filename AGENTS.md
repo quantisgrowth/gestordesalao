@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- All demo/fictitious data lives in `src/data/demo.ts` with typed shapes; pages import from there so it can be swapped for backend queries later.
+- The `/app` layout (`src/components/layout/AppShell.tsx`) owns the sidebar (desktop) and bottom nav (mobile); nav items come from `src/components/layout/nav.ts`.
+- Every page showing demo data renders `DemoBadge` (via `PageHeader`) so fictitious data is never presented as real.
