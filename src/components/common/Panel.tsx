@@ -15,7 +15,7 @@ export function Panel({ title, children, className, action }: { title?: string; 
   );
 }
 
-export function StatCard({ label, value, hint, icon: Icon }: { label: string; value: string | number; hint?: string; icon: React.ComponentType<{ className?: string }> }) {
+export function StatCard({ label, value, hint, icon: Icon }: { label: string; value: string | number; hint?: string | undefined; icon: React.ComponentType<{ className?: string }> }) {
   return (
     <div className="rounded-2xl border bg-card p-5 shadow-card">
       <div className="flex items-center justify-between">
