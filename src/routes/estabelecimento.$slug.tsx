@@ -13,12 +13,15 @@ export const Route = createFileRoute("/estabelecimento/$slug")({
   },
   head: () => ({
     meta: [
-      { title: `${demoBusiness.name} (demonstração) · Cadence` },
-      { name: "description", content: "Exemplo de página pública de estabelecimento na Cadence." },
-      { property: "og:title", content: `${demoBusiness.name} · Cadence` },
+      { title: `${demoBusiness.name} (demonstração) · Gestor de Salão` },
+      {
+        name: "description",
+        content: "Exemplo de página pública de estabelecimento no Gestor de Salão.",
+      },
+      { property: "og:title", content: `${demoBusiness.name} · Gestor de Salão` },
       {
         property: "og:description",
-        content: "Exemplo de página pública de estabelecimento na Cadence.",
+        content: "Exemplo de página pública de estabelecimento no Gestor de Salão.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
