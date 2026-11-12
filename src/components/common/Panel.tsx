@@ -1,7 +1,17 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-export function Panel({ title, children, className, action }: { title?: string; children: ReactNode; className?: string; action?: ReactNode }) {
+export function Panel({
+  title,
+  children,
+  className,
+  action,
+}: {
+  title?: string;
+  children: ReactNode;
+  className?: string;
+  action?: ReactNode;
+}) {
   return (
     <section className={cn("rounded-2xl border bg-card p-5 shadow-card", className)}>
       {title && (
@@ -15,12 +25,24 @@ export function Panel({ title, children, className, action }: { title?: string; 
   );
 }
 
-export function StatCard({ label, value, hint, icon: Icon }: { label: string; value: string | number; hint?: string | undefined; icon: React.ComponentType<{ className?: string }> }) {
+export function StatCard({
+  label,
+  value,
+  hint,
+  icon: Icon,
+}: {
+  label: string;
+  value: string | number;
+  hint?: string | undefined;
+  icon: React.ComponentType<{ className?: string }>;
+}) {
   return (
     <div className="rounded-2xl border bg-card p-5 shadow-card">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-muted-foreground">{label}</span>
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-foreground"><Icon className="h-5 w-5" /></span>
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-foreground">
+          <Icon className="h-5 w-5" />
+        </span>
       </div>
       <p className="mt-3 font-display text-3xl font-semibold">{value}</p>
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
@@ -29,15 +51,45 @@ export function StatCard({ label, value, hint, icon: Icon }: { label: string; va
 }
 
 const statusStyles = {
-  confirmado: "bg-accent text-accent-foreground",
-  pendente: "bg-muted text-muted-foreground",
-  concluido: "bg-secondary text-secondary-foreground line-through decoration-1",
+  confirmed: "bg-accent text-accent-foreground",
+  checked_in: "bg-accent text-accent-foreground",
+  in_service: "bg-primary text-primary-foreground",
+  completed: "bg-secondary text-secondary-foreground",
+  cancelled: "bg-muted text-muted-foreground",
+  no_show: "bg-muted text-muted-foreground",
+  waiting: "bg-accent text-accent-foreground",
+  called: "bg-primary text-primary-foreground",
+  left: "bg-muted text-muted-foreground",
+  chamando: "bg-primary text-primary-foreground",
   disponivel: "bg-accent text-accent-foreground",
   atendendo: "bg-primary text-primary-foreground",
   pausa: "bg-muted text-muted-foreground",
 } as const;
-const statusLabels = { confirmado: "Confirmado", pendente: "Pendente", concluido: "Concluído", disponivel: "Disponível", atendendo: "Atendendo", pausa: "Em pausa" } as const;
+const statusLabels = {
+  confirmed: "Confirmado",
+  checked_in: "Chegou",
+  in_service: "Em atendimento",
+  completed: "Concluído",
+  cancelled: "Cancelado",
+  no_show: "Ausente",
+  waiting: "Aguardando",
+  called: "Chamado",
+  left: "Desistiu",
+  chamando: "Aguardando cliente",
+  disponivel: "Disponível",
+  atendendo: "Atendendo",
+  pausa: "Em pausa",
+} as const;
 
 export function StatusPill({ status }: { status: keyof typeof statusStyles }) {
-  return <span className={cn("inline-flex rounded-full px-2.5 py-1 text-xs font-medium", statusStyles[status])}>{statusLabels[status]}</span>;
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
+        statusStyles[status],
+      )}
+    >
+      {statusLabels[status]}
+    </span>
+  );
 }
