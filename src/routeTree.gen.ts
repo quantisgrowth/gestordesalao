@@ -10,10 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AplicativosRouteImport } from './routes/aplicativos'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminEmpresasRouteImport } from './routes/admin.empresas'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAgendaRouteImport } from './routes/app.agenda'
+import { Route as AppAplicativosRouteImport } from './routes/app.aplicativos'
 import { Route as AppConfiguracoesRouteImport } from './routes/app.configuracoes'
 import { Route as AppFilaRouteImport } from './routes/app.fila'
 import { Route as AppProfissionaisRouteImport } from './routes/app.profissionais'
@@ -23,6 +28,16 @@ import { Route as EstabelecimentoSlugRouteImport } from './routes/estabeleciment
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AplicativosRoute = AplicativosRouteImport.update({
+  id: '/aplicativos',
+  path: '/aplicativos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -35,6 +50,16 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEmpresasRoute = AdminEmpresasRouteImport.update({
+  id: '/empresas',
+  path: '/empresas',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +68,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppAgendaRoute = AppAgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAplicativosRoute = AppAplicativosRouteImport.update({
+  id: '/aplicativos',
+  path: '/aplicativos',
   getParentRoute: () => AppRoute,
 } as any)
 const AppConfiguracoesRoute = AppConfiguracoesRouteImport.update({
@@ -73,80 +103,110 @@ const EstabelecimentoSlugRoute = EstabelecimentoSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/aplicativos': typeof AplicativosRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/empresas': typeof AdminEmpresasRoute
   '/app/agenda': typeof AppAgendaRoute
+  '/app/aplicativos': typeof AppAplicativosRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/fila': typeof AppFilaRoute
   '/app/profissionais': typeof AppProfissionaisRoute
   '/app/servicos': typeof AppServicosRoute
   '/estabelecimento/$slug': typeof EstabelecimentoSlugRoute
+  '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aplicativos': typeof AplicativosRoute
   '/login': typeof LoginRoute
+  '/admin/empresas': typeof AdminEmpresasRoute
   '/app/agenda': typeof AppAgendaRoute
+  '/app/aplicativos': typeof AppAplicativosRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/fila': typeof AppFilaRoute
   '/app/profissionais': typeof AppProfissionaisRoute
   '/app/servicos': typeof AppServicosRoute
   '/estabelecimento/$slug': typeof EstabelecimentoSlugRoute
+  '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/aplicativos': typeof AplicativosRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/empresas': typeof AdminEmpresasRoute
   '/app/agenda': typeof AppAgendaRoute
+  '/app/aplicativos': typeof AppAplicativosRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/fila': typeof AppFilaRoute
   '/app/profissionais': typeof AppProfissionaisRoute
   '/app/servicos': typeof AppServicosRoute
   '/estabelecimento/$slug': typeof EstabelecimentoSlugRoute
+  '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/aplicativos'
     | '/app'
     | '/login'
+    | '/admin/empresas'
     | '/app/agenda'
+    | '/app/aplicativos'
     | '/app/configuracoes'
     | '/app/fila'
     | '/app/profissionais'
     | '/app/servicos'
     | '/estabelecimento/$slug'
+    | '/admin/'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/aplicativos'
     | '/login'
+    | '/admin/empresas'
     | '/app/agenda'
+    | '/app/aplicativos'
     | '/app/configuracoes'
     | '/app/fila'
     | '/app/profissionais'
     | '/app/servicos'
     | '/estabelecimento/$slug'
+    | '/admin'
     | '/app'
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/aplicativos'
     | '/app'
     | '/login'
+    | '/admin/empresas'
     | '/app/agenda'
+    | '/app/aplicativos'
     | '/app/configuracoes'
     | '/app/fila'
     | '/app/profissionais'
     | '/app/servicos'
     | '/estabelecimento/$slug'
+    | '/admin/'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  AplicativosRoute: typeof AplicativosRoute
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
   EstabelecimentoSlugRoute: typeof EstabelecimentoSlugRoute
@@ -159,6 +219,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aplicativos': {
+      id: '/aplicativos'
+      path: '/aplicativos'
+      fullPath: '/aplicativos'
+      preLoaderRoute: typeof AplicativosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -175,6 +249,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/empresas': {
+      id: '/admin/empresas'
+      path: '/empresas'
+      fullPath: '/admin/empresas'
+      preLoaderRoute: typeof AdminEmpresasRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/': {
       id: '/app/'
       path: '/'
@@ -187,6 +275,13 @@ declare module '@tanstack/react-router' {
       path: '/agenda'
       fullPath: '/app/agenda'
       preLoaderRoute: typeof AppAgendaRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/aplicativos': {
+      id: '/app/aplicativos'
+      path: '/aplicativos'
+      fullPath: '/app/aplicativos'
+      preLoaderRoute: typeof AppAplicativosRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/configuracoes': {
@@ -227,8 +322,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminEmpresasRoute: typeof AdminEmpresasRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminEmpresasRoute: AdminEmpresasRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface AppRouteChildren {
   AppAgendaRoute: typeof AppAgendaRoute
+  AppAplicativosRoute: typeof AppAplicativosRoute
   AppConfiguracoesRoute: typeof AppConfiguracoesRoute
   AppFilaRoute: typeof AppFilaRoute
   AppProfissionaisRoute: typeof AppProfissionaisRoute
@@ -238,6 +346,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAgendaRoute: AppAgendaRoute,
+  AppAplicativosRoute: AppAplicativosRoute,
   AppConfiguracoesRoute: AppConfiguracoesRoute,
   AppFilaRoute: AppFilaRoute,
   AppProfissionaisRoute: AppProfissionaisRoute,
@@ -249,6 +358,8 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  AplicativosRoute: AplicativosRoute,
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
   EstabelecimentoSlugRoute: EstabelecimentoSlugRoute,
@@ -258,11 +369,15 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
+
 import type { startInstance } from './start.ts'
+
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
+
     router: Awaited<ReturnType<typeof getRouter>>
+
     config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

@@ -10,26 +10,33 @@ export function Logo({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 font-display text-xl font-bold",
+        "inline-flex shrink-0 items-center gap-2 font-display font-bold",
         tone === "light" ? "text-primary-foreground" : "text-foreground",
         className,
       )}
     >
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-mint text-mint-foreground">
-        <svg
-          viewBox="0 0 24 24"
-          className="h-5 w-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          aria-hidden
-        >
-          <path d="M18 5.5a8 8 0 1 0 0 13" />
-          <path d="M12 12h6" />
+      <span
+        className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-mint text-mint-foreground"
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 40 40" className="h-8 w-8" fill="currentColor">
+          <text
+            x="20"
+            y="26"
+            textAnchor="middle"
+            fontFamily="Inter, sans-serif"
+            fontSize="17"
+            fontWeight="700"
+            letterSpacing="-1"
+          >
+            GS
+          </text>
         </svg>
       </span>
-      Cadence
+      <span className="text-left text-sm leading-tight sm:text-base">
+        <span className="block">Gestor de</span>
+        <span className="block">Salão</span>
+      </span>
     </span>
   );
 }

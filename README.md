@@ -1,13 +1,18 @@
-# Cadence — Gestor de Salão
+# Gestor de Salão
 
 Fundação visual de uma plataforma para barbearias e salões que combinam agendamentos e fila presencial.
 
 Esta versão é uma demonstração: os dados são fictícios, as configurações não são salvas e as operações de atendimento estão desabilitadas. Ainda não há integração com banco de dados.
 
+Nova versão: [marca, aplicativos e estrutura multiempresa](docs/saas-multiempresa-v0.3.md).
+
 ## Explorar
 
 - `/`: apresentação.
 - `/login`: prévia do acesso.
+- `/aplicativos`: prévias navegáveis dos aplicativos do cliente e do gestor.
+- `/admin`: visão administrativa do SaaS.
+- `/admin/empresas`: cadastro local demonstrativo e acessos por convite (envio real ainda indisponível).
 - `/app`: resumo do cenário.
 - `/app/agenda`: agenda por profissional.
 - `/app/fila`: fila e aba de recepção/tablet.

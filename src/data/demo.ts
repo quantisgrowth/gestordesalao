@@ -9,6 +9,7 @@ export type AppointmentStatus =
 export type QueueStatus =
   "waiting" | "called" | "in_service" | "completed" | "left" | "no_show" | "cancelled";
 export type Professional = {
+  organizationId: string;
   id: string;
   name: string;
   role: string;
@@ -17,6 +18,7 @@ export type Professional = {
   serviceIds: string[];
 };
 export type Service = {
+  organizationId: string;
   id: string;
   name: string;
   durationMin: number;
@@ -24,6 +26,7 @@ export type Service = {
   category: string;
 };
 export type Appointment = {
+  organizationId: string;
   id: string;
   time: string;
   client: string;
@@ -32,6 +35,7 @@ export type Appointment = {
   status: AppointmentStatus;
 };
 export type QueueEntry = {
+  organizationId: string;
   id: string;
   client: string;
   serviceId: string;
@@ -44,6 +48,7 @@ export type QueueEntry = {
 };
 
 export const demoBusiness = {
+  id: "empresa-demo-1",
   name: "Estúdio Exemplo",
   slug: "demo",
   tagline: "Cortes, barba e cuidados — ambiente de demonstração",
@@ -66,6 +71,7 @@ export const demoSettings = {
 export const professionals: Professional[] = [
   {
     id: "p1",
+    organizationId: demoBusiness.id,
     name: "Profissional A",
     role: "Barbeiro(a)",
     status: "atendendo",
@@ -74,6 +80,7 @@ export const professionals: Professional[] = [
   },
   {
     id: "p2",
+    organizationId: demoBusiness.id,
     name: "Profissional B",
     role: "Cabeleireiro(a)",
     status: "disponivel",
@@ -82,6 +89,7 @@ export const professionals: Professional[] = [
   },
   {
     id: "p3",
+    organizationId: demoBusiness.id,
     name: "Profissional C",
     role: "Manicure",
     status: "chamando",
@@ -90,6 +98,7 @@ export const professionals: Professional[] = [
   },
   {
     id: "p4",
+    organizationId: demoBusiness.id,
     name: "Profissional D",
     role: "Barbeiro(a)",
     status: "pausa",
@@ -99,16 +108,52 @@ export const professionals: Professional[] = [
 ];
 
 export const services: Service[] = [
-  { id: "s1", name: "Corte de cabelo", durationMin: 40, priceCents: 5000, category: "Cabelo" },
-  { id: "s2", name: "Barba completa", durationMin: 30, priceCents: 3500, category: "Barba" },
-  { id: "s3", name: "Corte + barba", durationMin: 60, priceCents: 7500, category: "Combo" },
-  { id: "s4", name: "Escova", durationMin: 45, priceCents: 6000, category: "Cabelo" },
-  { id: "s5", name: "Manicure", durationMin: 40, priceCents: 4000, category: "Unhas" },
+  {
+    id: "s1",
+    organizationId: demoBusiness.id,
+    name: "Corte de cabelo",
+    durationMin: 40,
+    priceCents: 5000,
+    category: "Cabelo",
+  },
+  {
+    id: "s2",
+    organizationId: demoBusiness.id,
+    name: "Barba completa",
+    durationMin: 30,
+    priceCents: 3500,
+    category: "Barba",
+  },
+  {
+    id: "s3",
+    organizationId: demoBusiness.id,
+    name: "Corte + barba",
+    durationMin: 60,
+    priceCents: 7500,
+    category: "Combo",
+  },
+  {
+    id: "s4",
+    organizationId: demoBusiness.id,
+    name: "Escova",
+    durationMin: 45,
+    priceCents: 6000,
+    category: "Cabelo",
+  },
+  {
+    id: "s5",
+    organizationId: demoBusiness.id,
+    name: "Manicure",
+    durationMin: 40,
+    priceCents: 4000,
+    category: "Unhas",
+  },
 ];
 
 export const appointments: Appointment[] = [
   {
     id: "a1",
+    organizationId: demoBusiness.id,
     time: "09:00",
     client: "Cliente 01",
     serviceId: "s1",
@@ -117,6 +162,7 @@ export const appointments: Appointment[] = [
   },
   {
     id: "a2",
+    organizationId: demoBusiness.id,
     time: "10:00",
     client: "Cliente 02",
     serviceId: "s3",
@@ -125,6 +171,7 @@ export const appointments: Appointment[] = [
   },
   {
     id: "a3",
+    organizationId: demoBusiness.id,
     time: "10:30",
     client: "Cliente 03",
     serviceId: "s4",
@@ -133,6 +180,7 @@ export const appointments: Appointment[] = [
   },
   {
     id: "a4",
+    organizationId: demoBusiness.id,
     time: "11:15",
     client: "Cliente 04",
     serviceId: "s5",
@@ -141,6 +189,7 @@ export const appointments: Appointment[] = [
   },
   {
     id: "a5",
+    organizationId: demoBusiness.id,
     time: "14:00",
     client: "Cliente 05",
     serviceId: "s2",
@@ -149,6 +198,7 @@ export const appointments: Appointment[] = [
   },
   {
     id: "a6",
+    organizationId: demoBusiness.id,
     time: "15:30",
     client: "Cliente 06",
     serviceId: "s1",
@@ -160,6 +210,7 @@ export const appointments: Appointment[] = [
 export const queue: QueueEntry[] = [
   {
     id: "q1",
+    organizationId: demoBusiness.id,
     client: "Cliente 07",
     serviceId: "s1",
     waitingMin: 18,
@@ -170,6 +221,7 @@ export const queue: QueueEntry[] = [
   },
   {
     id: "q2",
+    organizationId: demoBusiness.id,
     client: "Cliente 08",
     serviceId: "s2",
     waitingMin: 9,
@@ -180,6 +232,7 @@ export const queue: QueueEntry[] = [
   },
   {
     id: "q3",
+    organizationId: demoBusiness.id,
     client: "Cliente 09",
     serviceId: "s5",
     waitingMin: 3,
@@ -217,3 +270,54 @@ export const appointmentsNeedingAttention = appointments.filter(
     professionalById(appointment.professionalId)?.status === "pausa" &&
     ["confirmed", "checked_in"].includes(appointment.status),
 );
+
+// Organizações fictícias do showroom SaaS. Não são contas reais nem vínculos de autenticação.
+export type DemoCompany = {
+  id: string;
+  name: string;
+  slug: string;
+  owner: string;
+  email: string;
+  plan: "Essencial" | "Profissional";
+  status: "ativa" | "convite_pendente" | "suspensa";
+  professionalsCount: number;
+};
+export const demoCompanies: DemoCompany[] = [
+  {
+    id: "empresa-demo-1",
+    name: demoBusiness.name,
+    slug: demoBusiness.slug,
+    owner: "Gestor de exemplo A",
+    email: "gestor.a@example.test",
+    plan: "Profissional",
+    status: "ativa",
+    professionalsCount: professionals.length,
+  },
+  {
+    id: "empresa-demo-2",
+    name: "Salão Modelo",
+    slug: "salao-modelo",
+    owner: "Gestora de exemplo B",
+    email: "gestora.b@example.test",
+    plan: "Essencial",
+    status: "convite_pendente",
+    professionalsCount: 0,
+  },
+  {
+    id: "empresa-demo-3",
+    name: "Barbearia Conceito",
+    slug: "barbearia-conceito",
+    owner: "Gestor de exemplo C",
+    email: "gestor.c@example.test",
+    plan: "Essencial",
+    status: "suspensa",
+    professionalsCount: 2,
+  },
+];
+export const demoClientProfile = { name: "Cliente 03", appointmentId: "a3", initials: "C3" };
+export const demoCompanyForm = {
+  name: "Novo Salão Exemplo",
+  slug: "novo-salao-exemplo",
+  owner: "Gestor de exemplo",
+  email: "novo.gestor@example.test",
+};

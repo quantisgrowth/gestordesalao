@@ -81,12 +81,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Cadence — Seu negócio no ritmo certo" },
+      { title: "Gestor de Salão — Seu negócio no ritmo certo" },
       {
         name: "description",
         content: "Gestão simples para barbearias, salões e profissionais autônomos.",
       },
-      { property: "og:title", content: "Cadence" },
+      { property: "og:title", content: "Gestor de Salão" },
       {
         property: "og:description",
         content: "Gestão simples para barbearias, salões e profissionais autônomos.",
