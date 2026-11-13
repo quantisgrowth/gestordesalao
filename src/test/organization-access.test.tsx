@@ -33,7 +33,10 @@ vi.mock("@/lib/supabase", () => ({
           state.calls.push({ table, ...(org ? { org } : {}) });
           const data =
             table === "memberships"
-              ? [{ organization_id: "one" }, { organization_id: "two" }]
+              ? [
+                  { organization_id: "one", roles: ["owner"] },
+                  { organization_id: "two", roles: ["receptionist"] },
+                ]
               : table === "organizations"
                 ? ["one", "two"].map((id) => ({
                     id,
@@ -49,6 +52,8 @@ vi.mock("@/lib/supabase", () => ({
                         name: `Serviço ${org}`,
                         duration_minutes: 30,
                         price_cents: 5000,
+                        active: true,
+                        updated_at: "2026-11-13T03:00:00Z",
                       },
                     ]
                   : table === "settings"
@@ -65,10 +70,13 @@ vi.mock("@/lib/supabase", () => ({
   }),
 }));
 function Probe() {
-  const { organization, services, selectOrganization } = useOrganization();
+  const { organization, services, selectOrganization, canManageCatalog, canManageCustomers } =
+    useOrganization();
   return (
     <>
       <h1>Empresa {organization.id}</h1>
+      <p>Catálogo: {canManageCatalog ? "editar" : "consultar"}</p>
+      <p>Clientes: {canManageCustomers ? "gerenciar" : "restrito"}</p>
       <p>{services[0]?.name}</p>
       <button onClick={() => selectOrganization("two")}>Trocar empresa</button>
     </>
@@ -93,12 +101,15 @@ describe("Dados da empresa", () => {
   it("consulta somente o estabelecimento selecionado e limpa a visualização ao trocar", async () => {
     mount();
     expect(await screen.findByText("Serviço one")).toBeInTheDocument();
+    expect(screen.getByText("Catálogo: editar")).toBeInTheDocument();
     for (const call of state.calls.filter(
       (c) => !["memberships", "organizations"].includes(c.table),
     ))
       expect(call.org).toBe("one");
     fireEvent.click(screen.getByText("Trocar empresa"));
     expect(await screen.findByText("Serviço two")).toBeInTheDocument();
+    expect(screen.getByText("Catálogo: consultar")).toBeInTheDocument();
+    expect(screen.getByText("Clientes: gerenciar")).toBeInTheDocument();
     expect(screen.queryByText("Serviço one")).not.toBeInTheDocument();
     expect(state.calls.filter((c) => c.table === "services").map((c) => c.org)).toEqual([
       "one",

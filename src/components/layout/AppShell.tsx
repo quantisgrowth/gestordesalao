@@ -27,8 +27,9 @@ export function AppShell() {
   );
 }
 function SalonShell() {
-  const { organization, organizations, selectOrganization } = useOrganization();
+  const { organization, organizations, selectOrganization, canManageCustomers } = useOrganization();
   const { isAdmin } = useAuth();
+  const visibleNav = appNav.filter((item) => item.to !== "/app/clientes" || canManageCustomers);
   return (
     <div className="min-h-screen bg-background md:flex">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-sidebar p-4 text-sidebar-foreground md:flex">
@@ -40,7 +41,7 @@ function SalonShell() {
           <p className="font-semibold text-sidebar-accent-foreground">{organization.name}</p>
         </div>
         <nav className="mt-6 flex flex-1 flex-col gap-1" aria-label="Navegação do salão">
-          {appNav.map(({ to, label, icon: Icon }) => (
+          {visibleNav.map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
               to={to}
@@ -109,7 +110,9 @@ function SalonShell() {
               Dados da empresa · atualização a cada 30 s
             </span>
           </div>
-          <Outlet />
+          <div key={organization.id}>
+            <Outlet />
+          </div>
         </div>
       </main>
       <nav
@@ -140,7 +143,7 @@ function SalonShell() {
               <SheetDescription>Navegue pelas telas do seu estabelecimento.</SheetDescription>
             </SheetHeader>
             <nav className="mt-8 space-y-2">
-              {appNav.map(({ to, label, icon: Icon }) => (
+              {visibleNav.map(({ to, label, icon: Icon }) => (
                 <SheetClose asChild key={to}>
                   <Link
                     to={to}

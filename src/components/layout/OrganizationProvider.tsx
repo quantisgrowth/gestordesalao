@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useAuth, AccessMessage, SignOutButton } from "@/components/auth/AuthProvider";
 import { getSupabase } from "@/lib/supabase";
@@ -13,11 +13,14 @@ import {
   type Appointment,
   type QueueEntry,
   type Settings,
+  type OrgRole,
 } from "@/data/organization";
 
 type Data = {
   professionals: Professional[];
   services: Service[];
+  allProfessionals: Professional[];
+  allServices: Service[];
   appointments: Appointment[];
   queue: QueueEntry[];
   settings: Settings;
@@ -25,6 +28,10 @@ type Data = {
 };
 type Value = Data & {
   organization: Organization;
+  roles: OrgRole[];
+  canManageCatalog: boolean;
+  canManageCustomers: boolean;
+  refresh: () => void;
   organizations: Organization[];
   selectOrganization: (id: string) => void;
   serviceById: (id: string) => Service | undefined;
@@ -34,6 +41,7 @@ const Context = createContext<Value | null>(null);
 
 export function OrganizationProvider({ children }: { children: ReactNode }) {
   const { session, isAdmin } = useAuth();
+  const cache = useQueryClient();
   const [selected, setSelected] = useState("");
   const orgs = useQuery({
     queryKey: ["my-organizations", session?.user.id],
@@ -41,14 +49,14 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       const db = getSupabase();
       const memberships = await db
         .from("memberships")
-        .select("organization_id")
+        .select("organization_id,roles")
         .eq("user_id", session!.user.id)
         .eq("active", true);
       if (memberships.error) throw memberships.error;
       if (!memberships.data.length) return [];
       const result = await db
         .from("organizations")
-        .select("id,name,slug,status,timezone,address,contact_phone")
+        .select("id,name,slug,status,timezone,address,contact_phone,updated_at")
         .in(
           "id",
           memberships.data.map((m) => m.organization_id),
@@ -56,9 +64,13 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         .in("status", ["active", "trial"])
         .order("name");
       if (result.error) throw result.error;
-      return result.data as Organization[];
+      return (result.data as Organization[]).map((o) => ({
+        ...o,
+        roles: (memberships.data.find((m) => m.organization_id === o.id)?.roles ?? []) as OrgRole[],
+      }));
     },
     retry: false,
+    refetchInterval: 30_000,
   });
   const organization = orgs.data?.find((o) => o.id === selected) ?? orgs.data?.[0];
   const day = organization ? localDay(new Date(), organization.timezone) : "";
@@ -72,8 +84,8 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       const query = (table: string) => db.from(table).select("*").eq("organization_id", org.id);
       const now = new Date();
       const results = await Promise.all([
-        query("professionals").eq("active", true).order("name"),
-        query("services").eq("active", true).order("name"),
+        query("professionals").order("name"),
+        query("services").order("name"),
         query("professional_services").eq("active", true),
         query("appointments")
           .gte("start_at", new Date(now.getTime() - 36 * 3600_000).toISOString())
@@ -98,30 +110,39 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         paused: "pausa",
         offline: "offline",
       } as const;
+      const allProfessionals: Professional[] = pros!.data!.map((p) => ({
+        id: p.id,
+        organizationId: org.id,
+        name: p.name,
+        role: "Profissional",
+        active: p.active,
+        updatedAt: p.updated_at,
+        status: statuses[p.availability_status as keyof typeof statuses] ?? "offline",
+        initials: p.name
+          .split(/\s+/)
+          .map((n: string) => n[0])
+          .slice(0, 2)
+          .join(""),
+        serviceIds: links!.data!.filter((l) => l.professional_id === p.id).map((l) => l.service_id),
+      }));
+      const allServices: Service[] = services!.data!.map((s) => ({
+        id: s.id,
+        organizationId: org.id,
+        name: s.name,
+        durationMin: s.duration_minutes,
+        priceCents: s.price_cents,
+        category: "Serviço",
+        active: s.active,
+        updatedAt: s.updated_at,
+        professionalIds: links!
+          .data!.filter((l) => l.service_id === s.id)
+          .map((l) => l.professional_id),
+      }));
       return {
-        professionals: pros!.data!.map((p) => ({
-          id: p.id,
-          organizationId: org.id,
-          name: p.name,
-          role: "Profissional",
-          status: statuses[p.availability_status as keyof typeof statuses] ?? "offline",
-          initials: p.name
-            .split(/\s+/)
-            .map((n: string) => n[0])
-            .slice(0, 2)
-            .join(""),
-          serviceIds: links!
-            .data!.filter((l) => l.professional_id === p.id)
-            .map((l) => l.service_id),
-        })),
-        services: services!.data!.map((s) => ({
-          id: s.id,
-          organizationId: org.id,
-          name: s.name,
-          durationMin: s.duration_minutes,
-          priceCents: s.price_cents,
-          category: "Serviço",
-        })),
+        allProfessionals,
+        allServices,
+        professionals: allProfessionals.filter((p) => p.active),
+        services: allServices.filter((s) => s.active),
         appointments: appointments!
           .data!.filter((a) => localDay(a.start_at, org.timezone) === day)
           .map((a) => ({
@@ -166,7 +187,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         <Button
           onClick={() => {
             void orgs.refetch();
-            void data.refetch();
+            if (organization) void data.refetch();
           }}
         >
           Tentar novamente
@@ -192,10 +213,21 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       value={{
         ...data.data,
         organization,
+        roles: organization.roles,
+        canManageCatalog: organization.roles.some((r) => ["owner", "manager"].includes(r)),
+        canManageCustomers: organization.roles.some((r) =>
+          ["owner", "manager", "receptionist"].includes(r),
+        ),
+        refresh: () => {
+          void cache.invalidateQueries({
+            queryKey: ["organization-data", session?.user.id, organization.id],
+          });
+          void cache.invalidateQueries({ queryKey: ["my-organizations", session?.user.id] });
+        },
         organizations: orgs.data ?? [],
         selectOrganization: setSelected,
-        serviceById: (id) => data.data.services.find((s) => s.id === id),
-        professionalById: (id) => data.data.professionals.find((p) => p.id === id),
+        serviceById: (id) => data.data.allServices.find((s) => s.id === id),
+        professionalById: (id) => data.data.allProfessionals.find((p) => p.id === id),
       }}
     >
       {children}

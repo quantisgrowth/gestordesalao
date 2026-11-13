@@ -17,7 +17,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
       const [orgs, subscriptions] = await Promise.all([
         db
           .from("organizations")
-          .select("id,name,slug,status,timezone,address,contact_phone")
+          .select("id,name,slug,status,timezone,address,contact_phone,updated_at")
           .order("created_at", { ascending: false }),
         db.from("organization_subscriptions").select("organization_id,plan_code"),
       ]);

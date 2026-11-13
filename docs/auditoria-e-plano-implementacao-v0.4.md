@@ -1,5 +1,7 @@
 # Gestor de Salão — Auditoria funcional e plano de implementação v0.4
 
+> Atualização: o primeiro pacote foi implementado no código. Consulte a [entrega v0.5 e as pendências de ativação](entrega-cadastros-v0.5.md). O inventário abaixo preserva a base auditada no commit indicado.
+
 **Data:** 13/11/2026. **Base de código:** `quantisgrowth/gestordesalao`, commit `90083524b8f1e47cad08d749d190a2cac190cbcb`.
 
 **Situação:** comparação por módulo entre o código atual, a estrutura de 30 áreas e os trechos recuperados da pesquisa “Funcionalidades SaaS Barbearia”, o PRD MVP 1.3 aprovado e os SQLs de fundação entregues. A pesquisa foi recuperada de forma resumida, sem todos os subitens literais. A comparação das 30 áreas está na seção 10; não se afirma uma cobertura integral de cada subfuncionalidade da resposta original.

@@ -1,3 +1,4 @@
+export type OrgRole = "owner" | "manager" | "receptionist" | "professional";
 export type Organization = {
   id: string;
   name: string;
@@ -6,6 +7,7 @@ export type Organization = {
   timezone: string;
   address: string | null;
   contact_phone: string | null;
+  updated_at: string;
 };
 export type Professional = {
   id: string;
@@ -15,6 +17,8 @@ export type Professional = {
   status: "disponivel" | "atendendo" | "chamando" | "pausa" | "offline";
   initials: string;
   serviceIds: string[];
+  active: boolean;
+  updatedAt: string;
 };
 export type Service = {
   id: string;
@@ -23,6 +27,9 @@ export type Service = {
   durationMin: number;
   priceCents: number;
   category: string;
+  professionalIds: string[];
+  active: boolean;
+  updatedAt: string;
 };
 export type Appointment = {
   id: string;
@@ -53,6 +60,9 @@ export type Settings = {
   call_response_minutes: number;
   lateness_minutes: number;
   cancellation_hours: number;
+  minimum_booking_lead_minutes: number;
+  maximum_booking_horizon_days: number;
+  updated_at: string;
 };
 export function localDay(value: string | Date, timezone: string) {
   return new Intl.DateTimeFormat("en-CA", {
@@ -71,3 +81,5 @@ export function localTime(value: string, timezone: string) {
 }
 export const formatPrice = (cents: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
+
+export type Customer = { id: string; display_name: string; phone_e164: string; updated_at: string };
