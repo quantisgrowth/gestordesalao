@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { Navigate } from "@tanstack/react-router";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { PasswordInput } from "@/components/auth/PasswordInput";
+import { ForgotPassword } from "@/components/auth/ForgotPassword";
 import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,9 +98,8 @@ function Login() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="senha">Senha</Label>
-              <Input
+              <PasswordInput
                 id="senha"
-                type="password"
                 placeholder="••••••••"
                 className="h-12"
                 autoComplete="current-password"
@@ -117,6 +118,9 @@ function Login() {
               {pending || auth.accessLoading ? "Entrando…" : "Entrar"}
             </Button>
           </form>
+          <div className="mt-2 text-right">
+            <ForgotPassword email={email} />
+          </div>
           <Button asChild variant="link" className="mt-4 w-full">
             <Link to="/aplicativos">Ver as prévias dos aplicativos</Link>
           </Button>

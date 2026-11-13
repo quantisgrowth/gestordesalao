@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AplicativosRouteImport } from './routes/aplicativos'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminEmpresasRouteImport } from './routes/admin.empresas'
 import { Route as AppIndexRouteImport } from './routes/app.index'
@@ -48,6 +49,11 @@ const AppRoute = AppRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/aplicativos': typeof AplicativosRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/app/agenda': typeof AppAgendaRoute
   '/app/aplicativos': typeof AppAplicativosRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aplicativos': typeof AplicativosRoute
   '/login': typeof LoginRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/app/agenda': typeof AppAgendaRoute
   '/app/aplicativos': typeof AppAplicativosRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/aplicativos': typeof AplicativosRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/app/agenda': typeof AppAgendaRoute
   '/app/aplicativos': typeof AppAplicativosRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/aplicativos'
     | '/app'
     | '/login'
+    | '/redefinir-senha'
     | '/admin/empresas'
     | '/app/agenda'
     | '/app/aplicativos'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/'
     | '/aplicativos'
     | '/login'
+    | '/redefinir-senha'
     | '/admin/empresas'
     | '/app/agenda'
     | '/app/aplicativos'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/aplicativos'
     | '/app'
     | '/login'
+    | '/redefinir-senha'
     | '/admin/empresas'
     | '/app/agenda'
     | '/app/aplicativos'
@@ -209,6 +221,7 @@ export interface RootRouteChildren {
   AplicativosRoute: typeof AplicativosRoute
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   EstabelecimentoSlugRoute: typeof EstabelecimentoSlugRoute
 }
 
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -362,6 +382,7 @@ const rootRouteChildren: RootRouteChildren = {
   AplicativosRoute: AplicativosRoute,
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
   EstabelecimentoSlugRoute: EstabelecimentoSlugRoute,
 }
 export const routeTree = rootRouteImport
@@ -369,15 +390,11 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-
 import type { startInstance } from './start.ts'
-
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
-
     router: Awaited<ReturnType<typeof getRouter>>
-
     config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

@@ -4,7 +4,8 @@ Gestão para barbearias e salões, com autenticação por e-mail e senha e consu
 
 ## Acessos
 
-- `/login`: login real com Supabase Auth. O papel administrativo é verificado por `gs_is_platform_admin`.
+- `/login`: login real, botão mostrar/ocultar senha e recuperação por e-mail com Supabase Auth. O papel administrativo é verificado por `gs_is_platform_admin`.
+- `/redefinir-senha`: nova senha e confirmação após abrir o link recebido por e-mail.
 - `/admin` e `/admin/empresas`: área restrita ao administrador da plataforma, listagem real e criação transacional por `gs_create_organization`.
 - `/app`: empresas ativas vinculadas ao usuário; troca explícita quando houver mais de um vínculo.
 - `/app/agenda`, `/app/fila`, `/app/profissionais`, `/app/servicos`, `/app/configuracoes`: consulta dos registros da empresa selecionada, atualizada a cada 30 segundos.
@@ -12,6 +13,17 @@ Gestão para barbearias e salões, com autenticação por e-mail e senha e consu
 - `/aplicativos`, `/app/aplicativos` e `/estabelecimento/demo`: prévias identificadas com dados fictícios.
 
 Os painéis reais não usam dados fictícios como fallback. Empresas sem registros mostram estados vazios; erros de consulta mostram opção de tentar novamente.
+
+## Recuperação de senha
+
+Em **Supabase → Authentication → URL Configuration**, configure:
+
+- **Site URL**: `https://gestordesalao.lovable.app`
+- **Redirect URLs**: `https://gestordesalao.lovable.app/redefinir-senha`
+
+Adicione separadamente os endereços de desenvolvimento/preview se precisar recuperar senhas nesses ambientes. O envio usa `resetPasswordForEmail` com a origem atual e a rota `/redefinir-senha`. O usuário define e confirma a nova senha com `updateUser`; não são criadas senhas pelo administrador. Links inválidos/expirados permitem solicitar outro envio. A resposta ao envio não confirma se existe uma conta com aquele e-mail.
+
+Os testes automatizados usam serviços simulados: não enviam e-mails e não alteram senhas reais. A entrega do e-mail e o fluxo completo precisam ser homologados com a configuração do projeto e a versão publicada.
 
 ## Cadastro de empresas
 
