@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Info } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Navigate } from "@tanstack/react-router";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +15,36 @@ export const Route = createFileRoute("/login")({
 });
 
 function Login() {
+  const auth = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    setError("");
+    setPending(true);
+    try {
+      const { error } = await getSupabase().auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (error)
+        setError(
+          error.code === "invalid_credentials"
+            ? "E-mail ou senha incorretos."
+            : error.code === "email_not_confirmed"
+              ? "Confirme seu e-mail antes de entrar."
+              : "Não foi possível entrar. Verifique sua conexão e tente novamente.",
+        );
+    } catch {
+      setError("Não foi possível conectar ao serviço de login.");
+    } finally {
+      setPending(false);
+    }
+  }
+  if (auth.ready && auth.session && !auth.accessLoading && !auth.accessError)
+    return <Navigate to={auth.isAdmin ? "/admin" : "/app"} replace />;
   return (
     <div className="grid min-h-screen md:grid-cols-2">
       <div className="hidden bg-hero p-12 text-primary-foreground md:flex md:flex-col md:justify-between">
@@ -28,11 +61,25 @@ function Login() {
           </Link>
           <h1 className="mt-8 text-2xl font-semibold md:mt-0">Entrar</h1>
           <p className="mt-1 text-muted-foreground">Acesse o painel do seu estabelecimento.</p>
-          <div className="mt-6 flex gap-2 rounded-xl border border-dashed bg-accent p-3 text-sm text-accent-foreground">
-            <Info className="mt-0.5 h-4 w-4 shrink-0" />O acesso ainda não está disponível. Esta
-            tela é apenas uma prévia visual.
-          </div>
-          <form className="mt-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
+          {!supabaseConfigured && (
+            <p role="alert" className="mt-6 text-sm text-destructive">
+              A conexão com o Supabase ainda não foi configurada.
+            </p>
+          )}
+          {(error || auth.error) && (
+            <p role="alert" className="mt-6 text-sm text-destructive">
+              {error || auth.error}
+            </p>
+          )}
+          {auth.accessError && (
+            <div role="alert" className="mt-6 text-sm text-destructive">
+              Não foi possível verificar suas permissões.{" "}
+              <button onClick={auth.retryAccess} className="underline">
+                Tentar novamente
+              </button>
+            </div>
+          )}
+          <form className="mt-6 space-y-4" onSubmit={submit}>
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
               <Input
@@ -40,19 +87,38 @@ function Login() {
                 type="email"
                 placeholder="voce@exemplo.com"
                 className="h-12"
-                disabled
+                autoComplete="username"
+                required
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                disabled={pending || !supabaseConfigured}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="senha">Senha</Label>
-              <Input id="senha" type="password" placeholder="••••••••" className="h-12" disabled />
+              <Input
+                id="senha"
+                type="password"
+                placeholder="••••••••"
+                className="h-12"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                disabled={pending || !supabaseConfigured}
+              />
             </div>
-            <Button type="submit" size="xl" className="w-full" disabled>
-              Entrar
+            <Button
+              type="submit"
+              size="xl"
+              className="w-full"
+              disabled={pending || !supabaseConfigured || auth.accessLoading}
+            >
+              {pending || auth.accessLoading ? "Entrando…" : "Entrar"}
             </Button>
           </form>
           <Button asChild variant="link" className="mt-4 w-full">
-            <Link to="/app">Ver o painel de demonstração</Link>
+            <Link to="/aplicativos">Ver as prévias dos aplicativos</Link>
           </Button>
         </div>
       </div>

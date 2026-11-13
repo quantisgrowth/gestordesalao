@@ -1,7 +1,13 @@
 import { AlertTriangle } from "lucide-react";
-import { appointmentsNeedingAttention, professionalById } from "@/data/demo";
+import { useOrganization } from "@/components/layout/OrganizationProvider";
 
 export function OperationalAlert() {
+  const { appointments, professionalById } = useOrganization();
+  const appointmentsNeedingAttention = appointments.filter(
+    (a) =>
+      ["confirmed", "checked_in"].includes(a.status) &&
+      professionalById(a.professionalId)?.status === "pausa",
+  );
   if (!appointmentsNeedingAttention.length) return null;
   return (
     <aside

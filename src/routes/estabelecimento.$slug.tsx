@@ -1,4 +1,8 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getSupabase, supabaseConfigured } from "@/lib/supabase";
+import { AccessMessage } from "@/components/auth/AuthProvider";
+import { Button } from "@/components/ui/button";
 import { Clock, MapPin } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { DemoBadge } from "@/components/common/DemoBadge";
@@ -7,21 +11,17 @@ import { WaitSummary } from "@/components/common/WaitSummary";
 import { demoBusiness, formatPrice, professionals, services } from "@/data/demo";
 
 export const Route = createFileRoute("/estabelecimento/$slug")({
-  loader: ({ params }) => {
-    if (params.slug !== demoBusiness.slug) throw notFound();
-    return demoBusiness;
-  },
   head: () => ({
     meta: [
-      { title: `${demoBusiness.name} (demonstração) · Gestor de Salão` },
+      { title: "Estabelecimento · Gestor de Salão" },
       {
         name: "description",
-        content: "Exemplo de página pública de estabelecimento no Gestor de Salão.",
+        content: "Página pública de estabelecimento no Gestor de Salão.",
       },
-      { property: "og:title", content: `${demoBusiness.name} · Gestor de Salão` },
+      { property: "og:title", content: "Estabelecimento · Gestor de Salão" },
       {
         property: "og:description",
-        content: "Exemplo de página pública de estabelecimento no Gestor de Salão.",
+        content: "Página pública de estabelecimento no Gestor de Salão.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,7 +32,104 @@ export const Route = createFileRoute("/estabelecimento/$slug")({
 });
 
 function PublicPage() {
-  const b = Route.useLoaderData();
+  const { slug } = Route.useParams();
+  return slug === "demo" ? <DemoPublicPage /> : <LivePublicPage slug={slug} />;
+}
+
+type Catalog = {
+  name: string;
+  address: string | null;
+  contact_phone: string | null;
+  services: { id: string; name: string; duration_minutes: number; price_cents: number }[];
+  professionals: { id: string; name: string }[];
+  queue: { waiting_count: number } | null;
+};
+function LivePublicPage({ slug }: { slug: string }) {
+  const catalog = useQuery({
+    queryKey: ["public-catalog", slug],
+    enabled: typeof window !== "undefined" && supabaseConfigured,
+    queryFn: async () => {
+      const { data, error } = await getSupabase().rpc("gs_public_catalog", { p_slug: slug });
+      if (error) throw error;
+      return data as Catalog | null;
+    },
+    retry: false,
+    refetchInterval: 30_000,
+  });
+  if (!supabaseConfigured)
+    return (
+      <AccessMessage title="Página indisponível">
+        <p>A conexão ainda não foi configurada.</p>
+      </AccessMessage>
+    );
+  if (catalog.isPending) return <AccessMessage title="Carregando estabelecimento…" />;
+  if (catalog.isError)
+    return (
+      <AccessMessage title="Não foi possível carregar a página">
+        <Button onClick={() => void catalog.refetch()}>Tentar novamente</Button>
+      </AccessMessage>
+    );
+  if (!catalog.data)
+    return (
+      <AccessMessage title="Página pública indisponível">
+        <p>O estabelecimento não foi encontrado ou ainda não ativou sua página pública.</p>
+        <Link to="/">Voltar ao início</Link>
+      </AccessMessage>
+    );
+  const b = catalog.data;
+  return (
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-12">
+      <Logo />
+      <h1 className="text-4xl font-bold">{b.name}</h1>
+      {b.address && <p className="text-muted-foreground">{b.address}</p>}
+      {b.contact_phone && <p>{b.contact_phone}</p>}
+      {b.queue && (
+        <section className="rounded-2xl border bg-card p-5">
+          <h2 className="text-lg font-semibold">Fila presencial</h2>
+          <p className="mt-3">{b.queue.waiting_count} pessoa(s) aguardando</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Estimativa de espera indisponível. Para entrar na fila, confirme sua presença com a
+            equipe.
+          </p>
+        </section>
+      )}
+      <section className="rounded-2xl border bg-card p-5">
+        <h2 className="text-lg font-semibold">Serviços</h2>
+        {!b.services.length && (
+          <p className="mt-3 text-sm text-muted-foreground">Nenhum serviço publicado.</p>
+        )}
+        <ul className="mt-3 divide-y">
+          {b.services.map((s) => (
+            <li key={s.id} className="flex justify-between gap-4 py-3">
+              <div>
+                <p>{s.name}</p>
+                <p className="text-sm text-muted-foreground">{s.duration_minutes} min</p>
+              </div>
+              <span>{formatPrice(s.price_cents)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section className="rounded-2xl border bg-card p-5">
+        <h2 className="text-lg font-semibold">Equipe</h2>
+        <ul className="mt-3 space-y-2">
+          {b.professionals.map((p) => (
+            <li key={p.id}>{p.name}</li>
+          ))}
+        </ul>
+        {!b.professionals.length && (
+          <p className="mt-3 text-sm text-muted-foreground">Nenhum profissional publicado.</p>
+        )}
+      </section>
+      <p className="text-sm text-muted-foreground">
+        Para agendar, entre em contato com o estabelecimento. O agendamento pelo site ainda não está
+        disponível.
+      </p>
+    </div>
+  );
+}
+function DemoPublicPage() {
+  const b = demoBusiness;
   return (
     <div className="min-h-screen bg-background pb-12">
       <section className="bg-hero px-4 pb-16 pt-6 text-primary-foreground sm:px-6">

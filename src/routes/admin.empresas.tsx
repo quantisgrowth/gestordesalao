@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Search, Building2, Mail, ShieldCheck } from "lucide-react";
-import { usePlatformDemo } from "@/components/admin/DemoPlatformContext";
+import { Plus, Search, Building2 } from "lucide-react";
+import { usePlatform } from "@/components/admin/PlatformProvider";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Panel } from "@/components/common/Panel";
 import { Button } from "@/components/ui/button";
@@ -14,285 +14,215 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { demoCompanyForm, type DemoCompany } from "@/data/demo";
+import { getSupabase } from "@/lib/supabase";
 import { pageHead } from "@/lib/seo";
-
 export const Route = createFileRoute("/admin/empresas")({
-  head: () =>
-    pageHead("Empresas e acessos", "Cadastro demonstrativo de empresas e gestores da plataforma."),
+  head: () => pageHead("Empresas e acessos", "Estabelecimentos cadastrados na plataforma."),
   component: Companies,
 });
-const statusLabels = {
-  ativa: "Ativa",
-  convite_pendente: "Aguardando ativação",
-  suspensa: "Suspensa",
-} as const;
+const statuses = { trial: "Em teste", active: "Ativa", suspended: "Suspensa", closed: "Encerrada" };
+const emptyDraft = { name: "", slug: "", email: "", plan: "essencial" };
 function Companies() {
-  const { companies, addCompany } = usePlatformDemo();
+  const { companies, refresh } = usePlatform();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState({
-    ...demoCompanyForm,
-    plan: "Essencial" as DemoCompany["plan"],
-  });
+  const [draft, setDraft] = useState(emptyDraft);
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [selected, setSelected] = useState<DemoCompany | null>(null);
-  const filtered = companies.filter((company) =>
-    `${company.name} ${company.email} ${company.slug}`
-      .toLocaleLowerCase("pt-BR")
-      .includes(query.toLocaleLowerCase("pt-BR")),
+  const filtered = companies.filter((c) =>
+    `${c.name} ${c.slug}`.toLocaleLowerCase("pt-BR").includes(query.toLocaleLowerCase("pt-BR")),
   );
-
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
+    if (pending) return;
     const slug = draft.slug.trim().toLowerCase();
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-      setError("Use apenas letras sem acento, números e hífens no identificador.");
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length < 2) {
+      setError("Use de 2 a 60 letras sem acento, números e hífens no identificador.");
       return;
     }
-    if (companies.some((company) => company.slug === slug)) {
-      setError("Já existe uma empresa com esse identificador nesta demonstração.");
+    if (companies.some((c) => c.slug === slug)) {
+      setError("Já existe uma empresa com esse identificador.");
       return;
     }
-    if (!draft.name.trim() || !draft.owner.trim()) {
-      setError("Informe o nome da empresa e do gestor.");
-      return;
-    }
-    addCompany({
-      ...draft,
-      name: draft.name.trim(),
-      owner: draft.owner.trim(),
-      email: draft.email.trim().toLowerCase(),
-      slug,
-      id: crypto.randomUUID(),
-      status: "convite_pendente",
-      professionalsCount: 0,
-    });
-    setMessage(
-      "Empresa adicionada somente à demonstração. Nenhum usuário foi criado e nenhum convite foi enviado.",
-    );
+    setPending(true);
     setError("");
-    setOpen(false);
+    try {
+      const { error } = await getSupabase().rpc("gs_create_organization", {
+        p_name: draft.name.trim(),
+        p_slug: slug,
+        p_owner_email: draft.email.trim().toLowerCase(),
+        p_plan_code: draft.plan,
+      });
+      if (error) {
+        setError(
+          error.code === "23505"
+            ? "Este identificador já está em uso."
+            : error.code === "42501"
+              ? "Seu usuário não tem permissão para cadastrar empresas."
+              : error.code === "P0001"
+                ? error.message
+                : "Não foi possível cadastrar. Verifique a conexão e tente novamente.",
+        );
+        return;
+      }
+      setOpen(false);
+      setDraft(emptyDraft);
+      setMessage(
+        "Empresa cadastrada e vinculada ao gestor. Ele já pode entrar com sua conta existente.",
+      );
+      await refresh();
+    } catch {
+      setError(
+        "Não foi possível confirmar o cadastro. Atualize a lista antes de tentar novamente.",
+      );
+    } finally {
+      setPending(false);
+    }
   }
-
   return (
     <>
       <PageHeader
         title="Empresas e acessos"
-        description="Cada empresa terá seu gestor e sua operação separada."
+        description="Empresas reais cadastradas na plataforma."
         actions={
           <Button
-            size="lg"
             onClick={() => {
               setError("");
               setOpen(true);
             }}
           >
-            <Plus className="h-4 w-4" /> Nova empresa · simular
+            <Plus className="h-4 w-4" /> Nova empresa
           </Button>
         }
       />
       {message && (
-        <p role="status" className="mb-5 rounded-xl bg-accent p-4 text-sm text-accent-foreground">
+        <p role="status" className="mb-5 rounded-xl bg-accent p-4 text-sm">
           {message}
         </p>
       )}
       <div className="mb-6 max-w-md">
-        <Label htmlFor="company-search">Buscar empresa ou login</Label>
+        <Label htmlFor="company-search">Buscar empresa</Label>
         <div className="relative mt-2">
-          <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
           <Input
             id="company-search"
             className="h-12 pl-10"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Nome, identificador ou e-mail fictício"
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Nome ou identificador"
           />
         </div>
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
-        {filtered.map((company) => (
-          <Panel key={company.id}>
-            <div className="flex flex-wrap items-start justify-between gap-3">
+        {filtered.map((c) => (
+          <Panel key={c.id}>
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <span className="mb-3 grid h-10 w-10 place-items-center rounded-xl bg-mint">
-                  <Building2 className="h-5 w-5" />
-                </span>
-                <h2 className="text-lg font-semibold">{company.name}</h2>
-                <p className="text-xs text-muted-foreground">/{company.slug}</p>
+                <Building2 className="mb-3 h-6 w-6 text-forest" />
+                <h2 className="text-lg font-semibold">{c.name}</h2>
+                <p className="text-xs text-muted-foreground">/{c.slug}</p>
               </div>
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-medium ${company.status === "ativa" ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}
-              >
-                {statusLabels[company.status]}
-              </span>
+              <span className="rounded-full bg-accent px-3 py-1 text-xs">{statuses[c.status]}</span>
             </div>
-            <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+            <dl className="mt-5 space-y-3 text-sm">
               <div>
-                <dt className="text-xs text-muted-foreground">Gestor</dt>
-                <dd className="mt-1">{company.owner}</dd>
+                <dt className="text-muted-foreground">Plano</dt>
+                <dd>
+                  {c.plan === "essencial"
+                    ? "Essencial"
+                    : c.plan === "profissional"
+                      ? "Profissional"
+                      : (c.plan ?? "Não informado")}
+                </dd>
               </div>
               <div>
-                <dt className="text-xs text-muted-foreground">Plano ilustrativo</dt>
-                <dd className="mt-1">{company.plan}</dd>
-              </div>
-              <div className="min-w-0 sm:col-span-2">
-                <dt className="text-xs text-muted-foreground">Login principal</dt>
-                <dd className="mt-1 break-all">{company.email}</dd>
+                <dt className="text-muted-foreground">ID da empresa</dt>
+                <dd className="break-all">{c.id}</dd>
               </div>
             </dl>
-            <Button variant="outline" className="mt-5" onClick={() => setSelected(company)}>
-              Ver empresa e acesso
-            </Button>
           </Panel>
         ))}
       </div>
       {!filtered.length && (
         <p className="rounded-2xl border bg-card p-8 text-center text-muted-foreground">
-          Nenhuma empresa encontrada.
+          {companies.length
+            ? "Nenhuma empresa encontrada."
+            : "Nenhuma empresa cadastrada. Cadastre o primeiro estabelecimento."}
         </p>
       )}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(value) => {
+          if (!pending) setOpen(value);
+        }}
+      >
         <DialogContent className="max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nova empresa</DialogTitle>
             <DialogDescription>
-              Use dados fictícios para explorar o cadastro. O acesso real será ativado por convite
-              para o gestor definir sua senha.
+              O gestor precisa ter um usuário com e-mail confirmado no Supabase Auth. Este cadastro
+              cria a empresa e vincula esse usuário; não envia convite.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="new-company-name">Nome da empresa</Label>
+              <Label htmlFor="company-name">Nome da empresa</Label>
               <Input
-                id="new-company-name"
+                id="company-name"
                 required
-                maxLength={100}
+                maxLength={120}
                 value={draft.name}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, name: event.target.value }))
-                }
+                disabled={pending}
+                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="new-company-slug">Identificador da empresa</Label>
+              <Label htmlFor="company-slug">Identificador</Label>
               <Input
-                id="new-company-slug"
+                id="company-slug"
                 required
+                minLength={2}
                 maxLength={60}
                 value={draft.slug}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, slug: event.target.value }))
-                }
-                aria-describedby="slug-help"
-              />
-              <p id="slug-help" className="text-xs text-muted-foreground">
-                Será usado no link público. Exemplo: novo-salao-exemplo.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-company-owner">Nome do gestor</Label>
-              <Input
-                id="new-company-owner"
-                required
-                maxLength={100}
-                value={draft.owner}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, owner: event.target.value }))
-                }
+                disabled={pending}
+                placeholder="barbearia-avangers"
+                onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="new-company-email">Login do gestor (e-mail)</Label>
+              <Label htmlFor="owner-email">E-mail do gestor já cadastrado</Label>
               <Input
-                id="new-company-email"
+                id="owner-email"
                 type="email"
                 required
-                maxLength={150}
-                autoComplete="off"
                 value={draft.email}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, email: event.target.value }))
-                }
+                disabled={pending}
+                onChange={(e) => setDraft({ ...draft, email: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="new-company-plan">Plano ilustrativo</Label>
+              <Label htmlFor="company-plan">Plano</Label>
               <select
-                id="new-company-plan"
-                className="h-11 w-full rounded-md border bg-background px-3 text-sm"
+                id="company-plan"
+                className="h-12 w-full rounded-md border bg-background px-3"
                 value={draft.plan}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    plan: event.target.value as DemoCompany["plan"],
-                  }))
-                }
+                disabled={pending}
+                onChange={(e) => setDraft({ ...draft, plan: e.target.value })}
               >
-                <option>Essencial</option>
-                <option>Profissional</option>
+                <option value="essencial">Essencial</option>
+                <option value="profissional">Profissional</option>
               </select>
-            </div>
-            <div className="rounded-xl bg-accent p-4 text-sm text-accent-foreground">
-              <p className="flex items-center gap-2 font-semibold">
-                <ShieldCheck className="h-4 w-4" /> Senha definida pelo gestor
-              </p>
-              <p className="mt-2">
-                O fluxo real enviará um convite de uso único para criação da senha. O administrador
-                não precisa conhecer nem guardar essa senha.
-              </p>
             </div>
             {error && (
               <p role="alert" className="text-sm text-destructive">
                 {error}
               </p>
             )}
-            <Button type="submit" className="w-full" size="lg">
-              Adicionar empresa à demonstração
+            <Button type="submit" disabled={pending} className="w-full">
+              {pending ? "Cadastrando…" : "Cadastrar empresa"}
             </Button>
           </form>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={selected !== null}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) setSelected(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selected?.name}</DialogTitle>
-            <DialogDescription>
-              Dados fictícios e situação do acesso desta empresa.
-            </DialogDescription>
-          </DialogHeader>
-          {selected && (
-            <div className="space-y-4 text-sm">
-              <p>
-                <strong>Gestor:</strong> {selected.owner}
-              </p>
-              <p className="break-all">
-                <strong>Login:</strong> {selected.email}
-              </p>
-              <p>
-                <strong>Senha:</strong> definida pelo gestor via convite seguro.
-              </p>
-              <p>
-                <strong>Situação:</strong> {statusLabels[selected.status]}
-              </p>
-              <p>
-                <strong>Equipe no exemplo:</strong> {selected.professionalsCount} profissionais.
-              </p>
-              <p className="rounded-xl bg-accent p-3 text-accent-foreground">
-                A autenticação real ainda não está conectada. Este cadastro não permite entrar em
-                uma conta.
-              </p>
-              <Button disabled className="w-full">
-                <Mail className="mr-2 h-4 w-4" /> Enviar convite · em breve
-              </Button>
-            </div>
-          )}
         </DialogContent>
       </Dialog>
     </>

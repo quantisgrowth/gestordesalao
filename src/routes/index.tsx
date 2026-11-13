@@ -70,7 +70,7 @@ function Landing() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="xl" variant="mint">
-                <Link to="/app">Ver demonstração</Link>
+                <Link to="/login">Acessar meu painel</Link>
               </Button>
               <Button
                 asChild
@@ -124,10 +124,12 @@ function Landing() {
         <div className="flex flex-col items-start gap-6 rounded-3xl bg-forest p-8 text-forest-foreground sm:flex-row sm:items-center sm:justify-between sm:p-12">
           <div>
             <h2 className="text-2xl font-semibold sm:text-3xl">Quer ver como funciona?</h2>
-            <p className="mt-2 opacity-85">Explore o painel com dados de demonstração.</p>
+            <p className="mt-2 opacity-85">
+              Entre no painel ou explore as prévias dos aplicativos.
+            </p>
           </div>
           <Button asChild size="xl" variant="mint">
-            <Link to="/app">Abrir demonstração</Link>
+            <Link to="/aplicativos">Explorar aplicativos</Link>
           </Button>
         </div>
       </section>
@@ -142,7 +144,7 @@ function Landing() {
             Página do cliente
           </Link>
           <Link to="/admin" className="underline">
-            Admin SaaS · demonstração
+            Admin da plataforma
           </Link>
         </div>
       </footer>

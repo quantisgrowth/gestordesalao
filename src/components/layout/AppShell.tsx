@@ -11,11 +11,24 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { appNav } from "./nav";
-import { demoBusiness } from "@/data/demo";
+import { RequireAuth, SignOutButton, useAuth } from "@/components/auth/AuthProvider";
+import { OrganizationProvider, useOrganization } from "./OrganizationProvider";
 const mobileNav = appNav.filter((item) =>
   ["/app", "/app/agenda", "/app/fila", "/app/aplicativos"].includes(item.to),
 );
 export function AppShell() {
+  const { session } = useAuth();
+  return (
+    <RequireAuth>
+      <OrganizationProvider key={session?.user.id}>
+        <SalonShell />
+      </OrganizationProvider>
+    </RequireAuth>
+  );
+}
+function SalonShell() {
+  const { organization, organizations, selectOrganization } = useOrganization();
+  const { isAdmin } = useAuth();
   return (
     <div className="min-h-screen bg-background md:flex">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-sidebar p-4 text-sidebar-foreground md:flex">
@@ -24,7 +37,7 @@ export function AppShell() {
         </Link>
         <div className="mt-4 rounded-xl bg-sidebar-accent p-3 text-sm">
           <p className="text-xs opacity-70">Estabelecimento</p>
-          <p className="font-semibold text-sidebar-accent-foreground">{demoBusiness.name}</p>
+          <p className="font-semibold text-sidebar-accent-foreground">{organization.name}</p>
         </div>
         <nav className="mt-6 flex flex-1 flex-col gap-1" aria-label="Navegação do salão">
           {appNav.map(({ to, label, icon: Icon }) => (
@@ -41,27 +54,32 @@ export function AppShell() {
         </nav>
         <Link
           to="/estabelecimento/$slug"
-          params={{ slug: "demo" }}
+          params={{ slug: organization.slug }}
           className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm hover:bg-sidebar-accent"
         >
           <ExternalLink className="h-4 w-4" /> Página pública
         </Link>
-        <Link
-          to="/admin"
-          className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs hover:bg-sidebar-accent"
-        >
-          <ShieldCheck className="h-4 w-4" /> Admin SaaS · demonstração
-        </Link>
+        {isAdmin && (
+          <Link
+            to="/admin"
+            className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs hover:bg-sidebar-accent"
+          >
+            <ShieldCheck className="h-4 w-4" /> Admin da plataforma
+          </Link>
+        )}
+        <div className="mt-3">
+          <SignOutButton />
+        </div>
       </aside>
       <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-card/90 px-4 backdrop-blur md:hidden">
         <Link to="/">
           <Logo />
         </Link>
         <div className="ml-3 flex min-w-0 items-center gap-2">
-          <span className="truncate text-xs text-muted-foreground">{demoBusiness.name}</span>
+          <span className="truncate text-xs text-muted-foreground">{organization.name}</span>
           <Link
             to="/estabelecimento/$slug"
-            params={{ slug: "demo" }}
+            params={{ slug: organization.slug }}
             className="grid h-11 w-11 shrink-0 place-items-center"
             aria-label="Ver página pública"
           >
@@ -71,6 +89,26 @@ export function AppShell() {
       </header>
       <main className="min-w-0 flex-1 px-4 pb-28 pt-6 sm:px-6 md:px-10 md:pb-10 md:pt-10">
         <div className="mx-auto max-w-6xl">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3">
+            <label className="flex items-center gap-2 text-sm">
+              Estabelecimento
+              <select
+                aria-label="Selecionar estabelecimento"
+                value={organization.id}
+                onChange={(e) => selectOrganization(e.target.value)}
+                className="min-h-11 max-w-64 rounded-md border bg-background px-3"
+              >
+                {organizations.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <span className="text-xs text-muted-foreground">
+              Dados da empresa · atualização a cada 30 s
+            </span>
+          </div>
           <Outlet />
         </div>
       </main>
@@ -99,7 +137,7 @@ export function AppShell() {
           <SheetContent side="right">
             <SheetHeader>
               <SheetTitle>Gestor de Salão</SheetTitle>
-              <SheetDescription>Navegue pelas telas da demonstração.</SheetDescription>
+              <SheetDescription>Navegue pelas telas do seu estabelecimento.</SheetDescription>
             </SheetHeader>
             <nav className="mt-8 space-y-2">
               {appNav.map(({ to, label, icon: Icon }) => (
@@ -113,15 +151,18 @@ export function AppShell() {
                   </Link>
                 </SheetClose>
               ))}
-              <SheetClose asChild>
-                <Link
-                  to="/admin"
-                  className="flex min-h-12 items-center gap-3 rounded-xl px-3 hover:bg-accent"
-                >
-                  <ShieldCheck className="h-5 w-5" />
-                  Admin SaaS · demonstração
-                </Link>
-              </SheetClose>
+              {isAdmin && (
+                <SheetClose asChild>
+                  <Link
+                    to="/admin"
+                    className="flex min-h-12 items-center gap-3 rounded-xl px-3 hover:bg-accent"
+                  >
+                    <ShieldCheck className="h-5 w-5" />
+                    Admin da plataforma
+                  </Link>
+                </SheetClose>
+              )}
+              <SignOutButton />
             </nav>
           </SheetContent>
         </Sheet>

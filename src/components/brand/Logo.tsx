@@ -24,7 +24,7 @@ export function Logo({
             x="20"
             y="26"
             textAnchor="middle"
-            fontFamily="Inter, sans-serif"
+            fontFamily="-apple-system, BlinkMacSystemFont, sans-serif"
             fontSize="17"
             fontWeight="700"
             letterSpacing="-1"

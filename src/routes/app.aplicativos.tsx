@@ -10,6 +10,7 @@ function Aplicativos() {
   return (
     <>
       <PageHeader
+        demo
         title="Aplicativos"
         description="Experimente a navegação do cliente e do gestor em uma prévia mobile."
       />

@@ -66,8 +66,10 @@
   --color-mint-foreground: var(--mint-foreground);
   --color-forest: var(--forest);
   --color-forest-foreground: var(--forest-foreground);
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-display: var(--font-sans);
   --shadow-glow: var(--shadow-glow);
   --shadow-card: var(--shadow-card);
   --color-sidebar: var(--sidebar);
@@ -137,6 +139,9 @@
   }
 
   body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-color: var(--color-background);
     color: var(--color-foreground);
   }

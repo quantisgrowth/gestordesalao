@@ -5,7 +5,7 @@ import { Panel, StatusPill } from "@/components/common/Panel";
 import { OperationalAlert } from "@/components/common/OperationalAlert";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { queue, serviceById, professionalById, demoSettings, demoBusiness } from "@/data/demo";
+import { useOrganization } from "@/components/layout/OrganizationProvider";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/app/fila")({
@@ -14,11 +14,12 @@ export const Route = createFileRoute("/app/fila")({
 });
 
 function Fila() {
+  const { queue, serviceById, professionalById, settings, dateLabel } = useOrganization();
   return (
     <>
       <PageHeader
         title="Fila de atendimento"
-        description={demoBusiness.scenarioLabel}
+        description={dateLabel}
         actions={
           <Button size="xl" disabled>
             <UserPlus /> Registrar chegada — em breve
@@ -37,10 +38,13 @@ function Fila() {
         </TabsList>
         <TabsContent value="fila">
           <p className="mb-4 text-sm text-muted-foreground">
-            Ordem de chegada do exemplo. A próxima chamada depende do serviço, da preferência e das
-            reservas de cada profissional; não existe posição única garantida para todos.
+            Ordem de chegada. A próxima chamada depende do serviço, da preferência e das reservas de
+            cada profissional; não existe posição única garantida para todos.
           </p>
           <Panel>
+            {!queue.length && (
+              <p className="py-4 text-sm text-muted-foreground">Nenhum cliente na fila.</p>
+            )}
             <ol className="space-y-3">
               {queue.map((entry) => (
                 <li
@@ -68,7 +72,7 @@ function Fila() {
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {entry.waitingMin} min já aguardados no exemplo
+                    {entry.waitingMin} min aguardados até a chamada ou atualização
                   </p>
                 </li>
               ))}
@@ -82,8 +86,8 @@ function Fila() {
         <TabsContent value="recepcao">
           <Panel title="Balcão de atendimento">
             <p className="text-sm text-muted-foreground">
-              Prévia para tablet e recepção. Todos os registros são fictícios; os botões
-              operacionais ainda estão desabilitados.
+              Consulta dos registros da recepção. As ações de atendimento ainda não estão
+              disponíveis nesta versão.
             </p>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <Button size="xl" disabled>
@@ -106,7 +110,7 @@ function Fila() {
                   {entry.status === "called" && (
                     <p className="mt-3 text-sm">
                       Chamada às {entry.calledAt}. Janela de resposta:{" "}
-                      {demoSettings.callResponseMinutes} minutos; ausência somente por ação manual
+                      {settings.call_response_minutes} minutos; ausência somente por ação manual
                       após esse prazo.
                     </p>
                   )}

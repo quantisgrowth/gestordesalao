@@ -29,6 +29,7 @@ function Aplicativos() {
       </header>
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <PageHeader
+          demo
           title="Dois aplicativos. Uma operação conectada."
           description="Veja a experiência de quem agenda e de quem organiza o salão."
         />

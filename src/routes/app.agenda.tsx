@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Panel, StatusPill } from "@/components/common/Panel";
 import { Button } from "@/components/ui/button";
-import { appointments, professionals, serviceById, demoBusiness } from "@/data/demo";
+import { useOrganization } from "@/components/layout/OrganizationProvider";
 import { OperationalAlert } from "@/components/common/OperationalAlert";
 import { pageHead } from "@/lib/seo";
 
@@ -13,11 +13,12 @@ export const Route = createFileRoute("/app/agenda")({
 });
 
 function Agenda() {
+  const { appointments, professionals, serviceById, dateLabel } = useOrganization();
   return (
     <>
       <PageHeader
         title="Agenda de hoje"
-        description={demoBusiness.scenarioLabel}
+        description={dateLabel}
         actions={
           <Button size="xl" disabled title="Disponível em breve">
             <Plus /> Novo agendamento
@@ -27,8 +28,13 @@ function Agenda() {
       <OperationalAlert />
       <p className="mb-4 text-sm text-muted-foreground">
         Reservas preservam o horário. Encaixes precisam comportar a duração do serviço e o
-        intervalo; nenhuma ação real está disponível nesta prévia.
+        intervalo. Novos agendamentos ainda não estão disponíveis nesta versão.
       </p>
+      {!professionals.length && (
+        <p className="rounded-xl border bg-card p-6 text-muted-foreground">
+          Cadastre profissionais para visualizar a agenda.
+        </p>
+      )}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {professionals.map((p) => {
           const list = appointments.filter((a) => a.professionalId === p.id);

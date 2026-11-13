@@ -51,6 +51,7 @@ export function StatCard({
 }
 
 const statusStyles = {
+  offline: "bg-muted text-muted-foreground",
   confirmed: "bg-accent text-accent-foreground",
   checked_in: "bg-accent text-accent-foreground",
   in_service: "bg-primary text-primary-foreground",
@@ -66,6 +67,7 @@ const statusStyles = {
   pausa: "bg-muted text-muted-foreground",
 } as const;
 const statusLabels = {
+  offline: "Offline",
   confirmed: "Confirmado",
   checked_in: "Chegou",
   in_service: "Em atendimento",

@@ -3,15 +3,7 @@ import { CalendarDays, Clock, ListOrdered, UserCheck } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Panel, StatCard, StatusPill } from "@/components/common/Panel";
 import { Button } from "@/components/ui/button";
-import {
-  appointments,
-  professionals,
-  queue,
-  serviceById,
-  professionalById,
-  demoBusiness,
-  publicQueueSnapshot,
-} from "@/data/demo";
+import { useOrganization } from "@/components/layout/OrganizationProvider";
 import { OperationalAlert } from "@/components/common/OperationalAlert";
 import { pageHead } from "@/lib/seo";
 
@@ -21,6 +13,8 @@ export const Route = createFileRoute("/app/")({
 });
 
 function Dashboard() {
+  const { appointments, professionals, queue, serviceById, professionalById, dateLabel } =
+    useOrganization();
   const upcoming = appointments
     .filter((a) => ["confirmed", "checked_in"].includes(a.status))
     .slice(0, 4);
@@ -29,7 +23,7 @@ function Dashboard() {
     <>
       <PageHeader
         title="Hoje no estabelecimento"
-        description={demoBusiness.scenarioLabel}
+        description={dateLabel}
         actions={
           <Button asChild size="lg">
             <Link to="/app/fila">Ver fila e recepção</Link>
@@ -41,23 +35,19 @@ function Dashboard() {
         <StatCard
           label="Agendamentos hoje"
           value={appointments.length}
-          hint={`${appointments.filter((appointment) => appointment.status === "completed").length} concluído(s) no exemplo`}
+          hint={`${appointments.filter((appointment) => appointment.status === "completed").length} concluído(s)`}
           icon={CalendarDays}
         />
         <StatCard
           label="Aguardando na fila"
           value={queue.filter((entry) => entry.status === "waiting").length}
-          hint={
-            publicQueueSnapshot.waitRange
-              ? `Espera ilustrativa: ${publicQueueSnapshot.waitRange.min}–${publicQueueSnapshot.waitRange.max} min`
-              : "Estimativa indisponível"
-          }
+          hint="Estimativa de espera indisponível"
           icon={ListOrdered}
         />
         <StatCard
           label="Profissionais livres"
           value={`${available}/${professionals.length}`}
-          hint="No cenário de demonstração"
+          hint="Disponibilidade informada pela equipe"
           icon={UserCheck}
         />
         <StatCard
@@ -77,6 +67,9 @@ function Dashboard() {
             </Button>
           }
         >
+          {!upcoming.length && (
+            <p className="py-4 text-sm text-muted-foreground">Nenhum próximo atendimento hoje.</p>
+          )}
           <ul className="divide-y">
             {upcoming.map((a) => (
               <li key={a.id} className="flex items-center gap-4 py-3">
@@ -92,7 +85,10 @@ function Dashboard() {
             ))}
           </ul>
         </Panel>
-        <Panel title="Equipe no cenário">
+        <Panel title="Equipe">
+          {!professionals.length && (
+            <p className="text-sm text-muted-foreground">Nenhum profissional cadastrado.</p>
+          )}
           <ul className="space-y-3">
             {professionals.map((p) => (
               <li key={p.id} className="flex items-center gap-3">
